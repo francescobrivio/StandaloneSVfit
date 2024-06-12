@@ -13,6 +13,18 @@ parser.add_argument('-n', '--nMax'   , type=int, default=-1                     
 parser.add_argument('-r', '--reduced', type=bool, default=False                                                                   , help='Reduced set of columns saved in output file')
 args = parser.parse_args()
 
+# Open RDF
+print('- Reading File:', args.input)
+df = ROOT.RDataFrame('Events', args.input)
+all_events = df.Count().GetValue()
+print('  - Original entries:', all_events)
+
+# Select only nMax entries if required
+if args.nMax > 0:
+    df = df.Range(args.nMax)
+    ranged_events = df.Count().GetValue()
+    print('  - Selected entries:', ranged_events)
+
 # Import StandaloneSVfit class
 ROOT.gROOT.ProcessLine('.L /gwpool/users/brivio/CCLUB/transformerTT/CMSSW_13_0_10/src/TauAnalysis/StandaloneSVfit/interface/StandaloneSVfit.h')
 
@@ -42,33 +54,28 @@ auto result = svfit.FitAndGetResultWithInputs(verbosity, pairType, DM1, DM2, tau
 return result;
 '''
 
-# Open RDF
-print('- Reading File:', args.input)
-df = ROOT.RDataFrame('Events', args.input)
-all_events = df.Count().GetValue()
-print('  - Original entries:', all_events)
-
-if args.nMax > 0:
-    # Select only nMax entries
-    df = df.Range(args.nMax)
-    ranged_events = df.Count().GetValue()
-    print('  - Selected entries:', ranged_events)
-
 # Run SVfit
-df = df.Define('svfit_m', svfit_string)
+df = df.Define('svfit_result', svfit_string)
 
+# Save SVfit quantities
+df = df.Define('svfit_pt'  , 'svfit_result.at(0)')
+df = df.Define('svfit_eta' , 'svfit_result.at(1)')
+df = df.Define('svfit_phi' , 'svfit_result.at(2)')
+df = df.Define('svfit_mass', 'svfit_result.at(3)')
+
+# Remove svfit_result from output
+cols = [col for col in df.GetColumnNames() if col != 'svfit_result']
+
+# Save to output file
 print('- Saving output to:', args.output)
 if args.reduced:
-    # Define columns to save in output
-    cols = ('run', 'luminosityBlock', 'event', 'svfit_m')
-    df.Snapshot('Events', args.output, cols)
-else:
-    df.Snapshot('Events', args.output)
+    cols = ['svfit_pt', 'svfit_eta', 'svfit_phi', 'svfit_mass']
+df.Snapshot('Events', args.output, cols)
 
 '''
 # Example of interactive inspection of the RDF
 import pdb; pdb.set_trace()
-cols = ('run', 'luminosityBlock', 'event', 'svfit_m')
+cols = ('run', 'luminosityBlock', 'event', 'svfit_pt', 'svfit_eta', 'svfit_phi', 'svfit_mass')
 d2 = df.Display(cols)
 print(d2.AsString())
 '''
