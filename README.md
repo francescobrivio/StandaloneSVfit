@@ -12,7 +12,11 @@ scram b -j 8
 ```
 
 ### Running instructions
-After installation, update the `run_svfit.py` script with the desired input and output file names, and do:
+After installation
+```
+cd TauAnalysis/StandaloneSVfit
+```
+update the `run_svfit.py` script with the desired input and output file names, and do:
 ```
 python3 run_svfit.py
 ```
