@@ -8,7 +8,7 @@ cd CMSSW_13_0_10/src
 cmsenv
 git clone https://github.com/LLRCMS/ClassicSVfit.git TauAnalysis/ClassicSVfit -b bbtautau_LegacyRun2
 git clone https://github.com/svfit/SVfitTF TauAnalysis/SVfitTF
-git clone git@github.com:francescobrivio/StandaloneSVfit.git TauAnalysis/StandaloneSVfit
+git clone https://github.com/francescobrivio/StandaloneSVfit.git TauAnalysis/StandaloneSVfit
 scram b -j 8
 ```
 
