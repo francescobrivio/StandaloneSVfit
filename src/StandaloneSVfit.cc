@@ -1,13 +1,13 @@
 #include "TauAnalysis/StandaloneSVfit/interface/StandaloneSVfit.h"
 
 
-// Constructors
-
+// Constructor
 StandaloneSVfit::StandaloneSVfit () {};
 
 // Destructor
 StandaloneSVfit::~StandaloneSVfit() {}
 
+// Fit and return result
 std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
     int verbosity, int pairType, int DM1, int DM2,
     double tau1_pt, double tau1_eta, double tau1_phi, double tau1_mass,
@@ -23,9 +23,25 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
   TMatrixD covMET_(2, 2);
   double kappa_;
 
+  // pairType - TauTau decay types assigment:
+  //   MuHad  = 0
+  //   EHad   = 1
+  //   HadHad = 2
+  //   MuMu   = 3
+  //   EE     = 4
+  //   EMu    = 5
+  //   MuE    = 6
+
+  // Define the k factor - use 3 for emu, 4 for etau and mutau, 5 for tautau channel
+  if      (pairType == 0) kappa_ = 4.;
+  else if (pairType == 1) kappa_ = 4.;
+  else if (pairType == 2) kappa_ = 5.;
+  else                    kappa_ = 3.;
+
   // verbosity
   verbosity_ = verbosity;
   measuredTauLeptons_.clear();
+
   // MET
   covMET_(0,0) = met_covXX;
   covMET_(0,1) = met_covXY;
@@ -47,9 +63,7 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
     l2Type = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     mass2  = tau2_mass;
     decay2 = DM2;
-    kappa_ = 4.;
   }
-
   else if (pairType == 1) // EleTau
   {
     l1Type = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
@@ -58,18 +72,51 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
     l2Type = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     mass2  = tau2_mass;
     decay2 = DM2;
-    kappa_ = 4.;
   }
-
-  else // TauTau
+  else if (pairType == 2) // TauTau
   {
     l1Type = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     mass1  = tau1_mass;
     decay1 = DM1;
     l2Type = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     mass2  = tau2_mass;
-    decay2 = DM2; 
-    kappa_ = 5.;
+    decay2 = DM2;
+  }
+  else if (pairType == 3) // MuMu
+  {
+    l1Type = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
+    mass1  = 105.658e-3;
+    decay1 = -1;
+    l2Type = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
+    mass2  = 105.658e-3;
+    decay2 = -1;
+  }
+  else if (pairType == 4) // EE
+  {
+    l1Type = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
+    mass1  = 0.51100e-3;
+    decay1 = -1;
+    l2Type = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
+    mass2  = 0.51100e-3;
+    decay2 = -1;
+  }
+  else if (pairType == 5) // EMu
+  {
+    l1Type = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
+    mass1  = 0.51100e-3;
+    decay1 = -1;
+    l2Type = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
+    mass2  = 105.658e-3;
+    decay2 = -1;
+  }
+  else // MuE
+  {
+    l1Type = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
+    mass1  = 105.658e-3;
+    decay1 = -1;
+    l2Type = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
+    mass2  = 0.51100e-3;
+    decay2 = -1;
   }
 
   // Fill the measuredTauLeptons
@@ -82,21 +129,28 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
   // Declare algo
   ClassicSVfit algo(verbosity_);
 
-  // Configure more options
+  // Configure fit options
   algo.addLogM_fixed(false, kappa_);
   algo.addLogM_dynamic(false);
 
   // Actually integrate
   algo.integrate(measuredTauLeptons_, METx_, METy_, covMET_);
 
-  // Return SVfit quantities if the integration succeeded 
-  // otherwise vector of -999 if the integration failed
+  // Return SVfit quantities if the integration succeeded...
   if (algo.isValidSolution())
   {
     result.at(0) = static_cast<classic_svFit::DiTauSystemHistogramAdapter*>(algo.getHistogramAdapter())->getPt();
     result.at(1) = static_cast<classic_svFit::DiTauSystemHistogramAdapter*>(algo.getHistogramAdapter())->getEta();
     result.at(2) = static_cast<classic_svFit::DiTauSystemHistogramAdapter*>(algo.getHistogramAdapter())->getPhi();
     result.at(3) = static_cast<classic_svFit::DiTauSystemHistogramAdapter*>(algo.getHistogramAdapter())->getMass();
+  }
+  // ...otherwise vector of -111 if the integration failed
+  else
+  {
+    result.at(0) = -111.;
+    result.at(1) = -111.;
+    result.at(2) = -111.;
+    result.at(3) = -111.;
   }
 
   return result;
