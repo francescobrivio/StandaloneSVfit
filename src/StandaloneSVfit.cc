@@ -1,6 +1,5 @@
 #include "TauAnalysis/StandaloneSVfit/interface/StandaloneSVfit.h"
 
-
 // Constructor
 StandaloneSVfit::StandaloneSVfit () {};
 
@@ -13,7 +12,7 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
     double tau1_pt, double tau1_eta, double tau1_phi, double tau1_mass,
     double tau2_pt, double tau2_eta, double tau2_phi, double tau2_mass,
     double met_pt, double met_phi,
-    double met_covXX, double met_covXY, double met_covYY)
+    double met_covXX, double met_covXY, double met_covYY, double massHypo)
 {
 
   int verbosity_;
@@ -132,6 +131,7 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
   // Configure fit options
   algo.addLogM_fixed(false, kappa_);
   algo.addLogM_dynamic(false);
+  algo.setDiTauMassConstraint(massHypo);
 
   // Actually integrate
   algo.integrate(measuredTauLeptons_, METx_, METy_, covMET_);
@@ -154,5 +154,4 @@ std::vector<double> StandaloneSVfit::FitAndGetResultWithInputs(
   }
 
   return result;
-
 }

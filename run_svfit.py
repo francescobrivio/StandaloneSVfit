@@ -50,7 +50,14 @@ double met_covXX = 834.84625;
 double met_covXY = 234.44636;
 double met_covYY = 915.31604;
 
-auto result = svfit.FitAndGetResultWithInputs(verbosity, pairType, DM1, DM2, tau1_pt, tau1_eta, tau1_phi, tau1_mass, tau2_pt, tau2_eta, tau2_phi, tau2_mass, met_pt, met_phi, met_covXX, met_covXY, met_covYY);
+double massHypo = 125.;
+
+auto result = svfit.FitAndGetResultWithInputs(
+    verbosity, pairType, DM1, DM2,
+    tau1_pt, tau1_eta, tau1_phi, tau1_mass,
+    tau2_pt, tau2_eta, tau2_phi, tau2_mass,
+    met_pt, met_phi, met_covXX, met_covXY, met_covYY,
+    massHypo);
 return result;
 '''
 
