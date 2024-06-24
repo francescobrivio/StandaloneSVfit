@@ -50,7 +50,7 @@ double met_covXX = 834.84625;
 double met_covXY = 234.44636;
 double met_covYY = 915.31604;
 
-double massHypo = 125.;
+double massHypo = 125.; // set to -1 if you don't want to pass a mass hypothesis
 
 auto result = svfit.FitAndGetResultWithInputs(
     verbosity, pairType, DM1, DM2,
